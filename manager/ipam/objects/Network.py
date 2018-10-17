@@ -1,8 +1,10 @@
 import ipaddress
+import manager.sql as sql
+from manager.database.Database import Database
 
 # These exist in case I have to extend these objects in the future
 
-class V6(ipaddress.IPV6Network):
+class IPV6Network(ipaddress.IPV6Network):
 
 	def __init__(self, network):
 		try:
@@ -12,7 +14,8 @@ class V6(ipaddress.IPV6Network):
 		except ValueError:
 			raise ValueError('Host bits set')
 
-class V4(ipaddress.IPV4Network):
+
+class IPV4Network(ipaddress.IPV4Network):
 	def __init__(self, network):
 		try:
 			super().__init__(network)

@@ -1,58 +1,38 @@
 import ipaddress
-import objects.IPAddress as IPAddress
-import objects.Network as Network
+import manager.objects.IPAddress as IPAddress
+import manager.objects.Network as Network
 import json
-import utils.common
-import sql
-import utils.types
+import manager.utils.common
+import manager.objects.sql as sql
+
 
 
 def create(data):
 	data = utils.common.verify_data(data)
 	if 'error' in data.keys():
 		return json.dumps(error_msg)
+	for item in data:
+		if data
 
-	else:
-		return json.dumps(error_msg)
 
-
-@overload
-def create_network(networkview: str , network: utils.types.IPV4Network):
-	if not sql.get_network(networkview,network.):
-		sql.create_network(networkview,network)
+def create_network(networkview: -> str, network: -> ipaddress._BaseNetwork) -> bool
+	if not sql.get_network(networkview, network):
+		sql.create_network(networkview, network)
 		return True
-	else:
-		return False
+	return False
 
-@overload
-def create_network(networkview: str , network: utils.types.IPV6Network):
-	if not sql.get_network(networkview,network.):
-		sql.create_network(networkview,network)
-		return True
-	else:
+def network_exist(networkview: -> str, network: -> ipaddress._BaseNetwork) - > bool
+	if not sql.get_network(networkview, network):
 		return False
+	return False
 
-def delete_network(networkview, network):
+def update_network(networkview: -> str, network: -> ipaddress._BaseNetwork): -> bool
+	return sql.update_network(networkview, network)
+
+def delete_network(networkview: -> str, network: -> ipaddress._BaseNetwork): -> bool
 	if sql.get_network(networkview, network):
 		sql.delete_network(networkview, network)
 		return True
-	else:
-		return False
-
-def create_v4address(networkview, network, address):
-	if sql.get_address(networkview, network, item):
-		sql.create_address(networkview, network, item)
-		return True
-	else:
-		return False
-
-def delete_v4address(networkview, network, address)
-	if sql.get_address(networkview, network, item):
-		sql.create_address(networkview, network, item)
-		return True
-	else:
-		return False
-
-def 
+	return False
 
 # decorators

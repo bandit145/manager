@@ -1,5 +1,6 @@
 import json
 
+def parse_data()
 
 def verify_data(data):
 	''' ipam Datastructure

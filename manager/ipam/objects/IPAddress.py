@@ -1,4 +1,4 @@
-import netaddr
+import ipaddress
 
 class V4(ipaddress.IPV4Address):
 

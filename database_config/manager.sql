@@ -1,23 +1,23 @@
 CREATE DATABASE ipam;
 USE ipam;
 
-# create network-views
-
-CREATE TABLE networkview (
-	name varchar(50) NOT NULL,
-	PRIMARY KEY(name)
-);
-
 CREATE TABLE network (
 	network varchar(41) NOT NULL,
 	version  smallint NOT NULL,
-	view varchar(50) NOT NULL, 
-	dhcpbegin varchar(41),
-	dhcpend varchar(41),
-	CONSTRAINT fk_network_view
-		FOREIGN KEY (view) REFERENCES networkview(name)
-		ON DELETE CASCADE,
-	CONSTRAINT network_unique UNIQUE (network, view)
+	dhcp_enabled boolean NOT NULL,
+	dhcp_begin varchar(41),
+	dhcp_end varchar(41),
+	CONSTRAINT network_unique UNIQUE (network)
+);
+
+CREATE TABLE vlan (
+  number bigint NOT NULL,
+  name varchar(50) NOT NULL,
+  network varchar(41) NOT NULL,
+  CONSTRAINT number_unique UNIQUE (number),
+  CONSTRAINT fk_network
+    FOREIGN KEY (network) REFERENCES network (network)
+
 );
 
 CREATE TABLE address (
@@ -31,5 +31,5 @@ CREATE TABLE address (
 	CONSTRAINT fk_network
 		FOREIGN KEY (network) REFERENCES network(network)
 		ON DELETE CASCADE,
-	CONSTRAINT address_unique UNIQUE (network,view,address)
+	CONSTRAINT address_unique UNIQUE (network,address)
 );

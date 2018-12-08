@@ -6,33 +6,34 @@ import manager.utils.common
 import manager.objects.sql as sql
 
 
-
-def create(data):
-	data = utils.common.verify_data(data)
-	if 'error' in data.keys():
-		return json.dumps(error_msg)
-	for item in data:
-		if data
+def create_network(networkview: str, network: dict) -> bool:
+    if not sql.get_network(networkview, network):
+        sql.create_network(networkview, network)
+        return True
+    return False
 
 
-def create_network(networkview: -> str, network: -> ipaddress._BaseNetwork) -> bool
-	if not sql.get_network(networkview, network):
-		sql.create_network(networkview, network)
-		return True
-	return False
+def network_exist(networkview: str, network: dict) -> bool:
+    if not sql.get_network(networkview, network):
+        return False
+    return False
 
-def network_exist(networkview: -> str, network: -> ipaddress._BaseNetwork) - > bool
-	if not sql.get_network(networkview, network):
-		return False
-	return False
 
-def update_network(networkview: -> str, network: -> ipaddress._BaseNetwork): -> bool
-	return sql.update_network(networkview, network)
+def update_network(networkview: str, network: dict) -> bool:
+    existing_network = sql.get_network(networkview, network):
+    if existing_network:
+        if network != existing_network:
+            sql.update_network(networkview, network)
+            return True
+        return False
 
-def delete_network(networkview: -> str, network: -> ipaddress._BaseNetwork): -> bool
-	if sql.get_network(networkview, network):
-		sql.delete_network(networkview, network)
-		return True
-	return False
+def delete_network(networkview: str, network: dict) -> bool:
+    if sql.get_network(networkview, network):
+        sql.delete_network(networkview, network)
+        return True
+    return False
 
-# decorators
+def get_network(networkview: str, network: ipaddress._BaseNetwork) -> ipaddress._BaseNetwork:
+    return sql.get_network(networkview, network)
+
+def create_address(networkview: str, address)

@@ -1,5 +1,4 @@
 flask==1.0.2
 dnspython==1.15.0
 PyYAML>=3.13
-PyMySQL
-netaddr
+psycopg2

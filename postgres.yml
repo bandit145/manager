@@ -1,0 +1,45 @@
+---
+
+- name: configure postgres
+  hosts: localhost
+  connection: local
+
+  tasks:
+
+    - name: install postgres repo
+      yum:
+        name:
+          - epel-release
+          - python-psycopg2
+          - https://download.postgresql.org/pub/repos/yum/11/redhat/rhel-7-x86_64/pgdg-centos11-11-2.noarch.rpm
+        state: present
+
+    - name: install postgres11
+      yum:
+        name: postgresql11-server
+        state: present
+
+    - name: init postgres
+      command: /usr/pgsql-11/bin/postgresql-11-setup initdb
+      args:
+        creates: /var/lib/pgsql/11/initdb.log
+
+    - name: listen address all
+      lineinfile:
+        path: /var/lib/pgsql/11/data/postgresql.conf
+        line: listen_addresses = '*'
+
+    - name: listen address all
+      lineinfile:
+        path: /var/lib/pgsql/11/data/pg_hba.conf
+        line: host all all 192.168.50.0/24 trust
+
+    - name: start postgres
+      service:
+        name: postgresql-11
+        state: started
+        use: service
+
+    #- name:
+    # shell: psql < /vagrant/database_config/manager.sql
+    #  become_user: postgres

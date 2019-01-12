@@ -14,10 +14,10 @@ Vagrant.configure("2") do |config|
         end
         client.vm.box = "centos/7"
         client.vm.network "private_network", ip: "192.168.50.2"
-        config.vm.provision "shell", inline: "yum -y install epel-release && yum -y  install https://download.postgresql.org/pub/repos/yum/11/redhat/rhel-7-x86_64/pgdg-centos11-11-2.noarch.rpm"
-        config.vm.provision "shell", inline: "yum -y install postgresql11-server"
-        config.vm.provision "shell", inline: "/usr/pgsql-11/bin/postgresql-11-setup initdb"
-        config.vm.provision "shell", inline: "echo \"listen_addresses = '*'\" >> /var/lib/pgsql/11/data/postgresql.conf"
-        config.vm.provision "shell", inline: "service postgresql-11 start"
+        config.vm.provision "ansible_local" do |ansible|
+            ansible.limit = "all,localhost"
+            ansible.become = true
+            ansible.playbook = "postgres.yml"
+        end
      end
 end

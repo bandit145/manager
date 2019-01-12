@@ -1,5 +1,4 @@
 import ipaddress
-import manager.sql as sql
 from  manager.ipam.objects.Vlan import Vlan
 from manager.database.Database import Database
 
@@ -9,8 +8,9 @@ class Network:
     dhcp_begin = None
     dhcp_end = None
 
-    def __init__(self, network: str, dhcp_enabled: bool, **kwargs):
+    def __init__(self, network: str, dhcp_enabled: bool, database_conn, **kwargs):
         self.network = network
+        self.sql = database_conn
         if dhcp_enabled:
             self.dhcp_enabled = dhcp_enabled
             self.dhcp_begin = kwargs['dhcp_begin']
@@ -21,8 +21,8 @@ class Network:
             self.vlans = kwargs['vlans']
 
     @staticmethod
-    def get(network: str):
-        returned_network = sql.get_network(network)
+    def get(network: str, database_conn):
+        returned_network = database_conn.get_network(network)
         if not returned_network:
             return None
         #TODO: sql.get_network is going to merge vlans into this list
@@ -34,18 +34,18 @@ class Network:
         return Network(returned_network.name, returned_network.dhcp_nenabled, **kwargs)
 
     def create(self) -> bool:
-        if not sql.get_network(self.network):
-            return sql.create_network(self.network)
+        if not self.sql.get_network(self.network):
+            return self.sql.create_network(self.network)
         return False
 
     def delete(self) -> bool:
-        return sql.delete_network(self.network)
+        return self.sql.delete_network(self.network)
 
     def update(self) -> bool:
-        if not sql.get_network(self.network):
+        if not self.sql.get_network(self.network):
             return False
         else:
-            return sql.update_network(self.network)
+            return self.sql.update_network(self.network)
 
 
 
@@ -53,7 +53,7 @@ class IPV6Network(ipaddress.IPV6Network, Network):
 
     def __init__(self, network: ipaddress._BaseNetwork, dhcp_enabled: bool, **kwargs):
         try:
-            super(ipaddress.IPv6Address).__init__(network)
+            super(ipaddress.IPv6Network).__init__(network)
             super(Network).__init__(network, dhcp_enabled, **kwargs)
         except ipaddress.NetmaskValueError:
             raise ValueError('Netmask incorrect')
@@ -63,7 +63,8 @@ class IPV6Network(ipaddress.IPV6Network, Network):
 class IPV4Network(ipaddress.IPV4Network):
     def __init__(self, network: ipaddress._BaseAddress, dhcp_enabled: bool, **kwargs):
         try:
-            super().__init__(network)
+            super(ipaddress.IPv4Network, self).__init__()
+            super(Network).__init__(network , dhcp_enabled, **kwargs)
         except ipaddress.NetmaskValueError:
             raise ValueError('Netmask incorrect')
         except ValueError:

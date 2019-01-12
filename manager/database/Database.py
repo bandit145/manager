@@ -1,5 +1,6 @@
 import psycopg2
 import ipaddress
+from manager.ipam.objects.Vlan import Vlan
 
 
 class Database:
@@ -16,6 +17,7 @@ class Database:
             cursor.execute(command, variables)
             if ret:
                 return cursor.fetchall()
+            cursor.close()
             return True
         except Exception as error:
             print(error)
@@ -32,3 +34,13 @@ class Database:
 
     def delete_view(self, view_name):
         return self.run_sql_stmt("DELETE FROM views WHERE view_name=%s", (view_name))
+
+    def create_vlan(self, vlan: Vlan, view_name: str):
+        return self.run_sql_stmt("INSERT into vlan VALUES ('%s','%s')",(vlan.name, vlan.number, view_name))
+
+    def get_vlan(self, vlan: Vlan, view_name: str):
+        data = self.run_sql_stmt("SELECT * from vlan WHERE vlan_number=%s AND view_name=%s",(vlan.number, view_name))
+        return Vlan(name=data[0], number=data[1])
+
+    def delete_vlan(self, vlan: Vlan, view_name: str):
+        return self.run_sql_stmt("DELETE FROM vlan WHERE vlan_number=%s AND view_name=%s", (vlan.number, view_name))

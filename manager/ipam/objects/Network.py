@@ -1,6 +1,6 @@
 import ipaddress
 from  manager.ipam.objects.Vlan import Vlan
-from manager.database.Database import Database
+
 
 # These exist in case I have to extend these objects in the future
 class Network:
@@ -49,7 +49,7 @@ class Network:
 
 
 
-class IPV6Network(ipaddress.IPV6Network, Network):
+class IPV6Network(ipaddress.IPv6Network, Network):
 
     def __init__(self, network: ipaddress._BaseNetwork, dhcp_enabled: bool, **kwargs):
         try:
@@ -60,8 +60,8 @@ class IPV6Network(ipaddress.IPV6Network, Network):
         except ValueError:
             raise ValueError('Host bits set')
 
-class IPV4Network(ipaddress.IPV4Network):
-    def __init__(self, network: ipaddress._BaseAddress, dhcp_enabled: bool, **kwargs):
+class IPV4Network(ipaddress.IPv4Network):
+    def __init__(self, network: ipaddress._BaseNetwork, dhcp_enabled: bool, **kwargs):
         try:
             super(ipaddress.IPv4Network, self).__init__()
             super(Network).__init__(network , dhcp_enabled, **kwargs)

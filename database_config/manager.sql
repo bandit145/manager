@@ -1,6 +1,8 @@
 CREATE DATABASE manager;
 \connect manager;
 
+CREATE EXTENSION ltree;
+
 CREATE TABLE views (
   view_name varchar PRIMARY KEY
 );
@@ -12,7 +14,7 @@ CREATE TABLE network (
 	network cidr NOT NULL,
 	version  smallint NOT NULL CHECK (version = 4 OR version = 6),
 	address_space int NOT NULL,
-	subnets varchar[],
+	subnets ltree,
 	supernet serial,
 	dhcp_enabled boolean NOT NULL,
 	dhcp_begin inet,
@@ -22,7 +24,7 @@ CREATE TABLE network (
 
 CREATE TABLE vlan (
   vlan_id SERIAL PRIMARY KEY,
-  vlan_number bigint NOT NULL,
+  number bigint NOT NULL,
   name varchar(50) NOT NULL,
   view_name varchar references views(view_name) on DELETE CASCADE,
   network_id int REFERENCES  network(network_id)
@@ -37,7 +39,8 @@ CREATE TABLE address (
   address_id SERIAL PRIMARY KEY,
 	address inet NOT NULL,
 	version smallint NOT NULL CHECK (version = 4 OR version = 6),
-	network_id serial NOT NULL references network(network_id),
+	network_id serial NOT NULL references network(network_id) on DELETE  CASCADE ,
 	view_name varchar references views(view_name) on DELETE CASCADE,
+	in_use bool NOT NULL,
 	UNIQUE (address, view_name)
 );

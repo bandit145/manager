@@ -8,9 +8,11 @@ class Network:
     dhcp_begin = None
     dhcp_end = None
 
-    def __init__(self, network: str, dhcp_enabled: bool, database_conn, **kwargs):
+    def __init__(self, network: str, supernet: str, subnets: list, dhcp_enabled: bool, database_conn, **kwargs):
         self.network = network
         self.sql = database_conn
+        self.supernet = supernet
+        self.subnets = subnets
         if dhcp_enabled:
             self.dhcp_enabled = dhcp_enabled
             self.dhcp_begin = kwargs['dhcp_begin']
@@ -30,10 +32,12 @@ class Network:
         if returned_network.dhcp_nenabled:
             kwargs['dhcp_end'] = returned_network.dhcp_end
             kwargs['dhcp_begin'] = returned_network.dhcp_begin
-            return Network(returned_network.name, returned_network.dhcp_nenabled, **kwargs)
+            return Network(returned_network.name, returned_network.supernet, returned_network.subnets,
+                           returned_network.dhcp_nenabled, **kwargs)
         return Network(returned_network.name, returned_network.dhcp_nenabled, **kwargs)
 
     def create(self) -> bool:
+
         if not self.sql.get_network(self.network):
             return self.sql.create_network(self.network)
         return False
@@ -48,23 +52,22 @@ class Network:
             return self.sql.update_network(self.network)
 
 
-
 class IPV6Network(ipaddress.IPv6Network, Network):
 
-    def __init__(self, network: ipaddress._BaseNetwork, dhcp_enabled: bool, **kwargs):
+    def __init__(self, network: str, supernet: str, subnets: list ,dhcp_enabled: bool, database_conn, **kwargs):
         try:
             super(ipaddress.IPv6Network).__init__(network)
-            super(Network).__init__(network, dhcp_enabled, **kwargs)
+            super(Network).__init__(network, supernet, subnets, dhcp_enabled, database_conn, **kwargs)
         except ipaddress.NetmaskValueError:
             raise ValueError('Netmask incorrect')
         except ValueError:
             raise ValueError('Host bits set')
 
-class IPV4Network(ipaddress.IPv4Network):
-    def __init__(self, network: ipaddress._BaseNetwork, dhcp_enabled: bool, **kwargs):
+
+class IPV4Network(ipaddress.IPv4Network, Network):
+    def __init__(self, network: str, supernet: str, subnets: list ,dhcp_enabled: bool, database_conn, **kwargs):
         try:
-            super(ipaddress.IPv4Network, self).__init__()
-            super(Network).__init__(network , dhcp_enabled, **kwargs)
+            super()
         except ipaddress.NetmaskValueError:
             raise ValueError('Netmask incorrect')
         except ValueError:

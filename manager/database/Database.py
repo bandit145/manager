@@ -25,9 +25,27 @@ class Database:
             logging.error(error)
             return False
 
-    def create_network(self, network: str, version: int, dhcp_enabled: bool, address_space, dhcp_begin, dhcp_end, view_name: str):
-        return self.run_sql_stmt("INSERT into network (view_name, network, version, dhcp_enabled, dhcp_begin, dhcp_end, address_space) VALUES (%s,%s,%s,%s,%s,%s,%s)"
-                                 , (view_name, network, version, dhcp_enabled, dhcp_begin, dhcp_end, address_space), False)
+    def create_network(self, network: str, supernet: str, version: int, dhcp_enabled: bool, address_space, dhcp_begin, dhcp_end, view_name: str):
+        if supernet:
+            response = self.run_sql_stmt("INSERT into network (view_name, network, version, supernet, dhcp_enabled, dhcp_begin, dhcp_end, address_space) VALUES (%s,%s,%s,(SELECT network_id from network WHERE network=%s and view_name=%s),%s,%s,%s,%s)"
+                                 , (view_name, network, version, supernet, view_name, dhcp_enabled, dhcp_begin, dhcp_end, address_space), False)
+        else:
+            response = self.run_sql_stmt("INSERT into network (view_name, network, version, supernet, dhcp_enabled, dhcp_begin, dhcp_end, address_space) VALUES (%s,%s,%s,%s,%s,%s,%s,%s)"
+                                 , (view_name, network, version, supernet, dhcp_enabled, dhcp_begin, dhcp_end, address_space), False)
+        return response
+
+    def add_avail_pool_member(self, network: str, availability_pool: str, view_name: str):
+        return self.run_sql_stmt("""INSERT into availability_pools_networks (avail_id, network_id) 
+                VALUES ((SELECT avail_id from availability_pool WHERE name=%s and view_name=%s), 
+                    (SELECT network_id from network WHERE network=%s and view_name=%s))""", (availability_pool, view_name, network, view_name) ,False)
+
+    def delete_avail_pool_member(self, network:str, availability_pool: str, view_name: str):
+        return self.run_sql_stmt("""DELETE FROM availability_pools_networks 
+            WHERE network_id=(SELECT network_id from network WHERE network=%s and view_name=%s) 
+            and avail_id=((SELECT avail_id from availability_pool WHERE name=%s and view_name=%s))""", (network, view_name, availability_pool, view_name), False)
+
+    def delete_network(self, network: str, view_name: str):
+        return self.run_sql_stmt("DELETE from network WHERE network=%s AND view_name=%s", (network, view_name), False)
 
     def get_network(self, network: str, view_name: str):
         return self.run_sql_stmt("SELECT view_name, network, version, dhcp_enabled, dhcp_begin, dhcp_end from network  WHERE network=%s AND view_name=%s"
@@ -59,12 +77,23 @@ class Database:
     def get_addresses_in_use(self, network: str, view_name: str):
         return self.run_sql_stmt("""
         SELECT COUNT(*) from address WHERE network_id=(SELECT network_id from network 
-        WHERE network=%s and view_name=%s) and view_name=%s and in_use=TRUE """,(network, view_name, view_name),True)[0][0]
+        WHERE network=%s and view_name=%s) and view_name=%s""",(network, view_name, view_name),True)[0][0]
 
-    def create_address(self, address: str, version: int, network: Network, in_use: bool,view_name: str):
-        return self.run_sql_stmt("""
-            INSERT into address (address, version, network_id ,view_name, in_use) VALUES (%s,%s,(SELECT network_id from network WHERE network=%s and view_name=%s),%s,%s) 
-        """, (address, version, network.network, view_name, view_name, in_use), False)
+    def get_networks_from_avail_pool(self, availability_pool: str, view_name: str):
+        return self.run_sql_stmt("SELECT avail_id from availability_pool WHERE name=%s and view_name=%s")
+
+    def create_address(self, address: str, version: int, network: Network, view_name: str):
+        return self.run_sql_stmt("INSERT into address (address, version, network_id ,view_name) VALUES (%s,%s,(SELECT network_id from network WHERE network=%s and view_name=%s),%s)"
+             , (address, version, network.network, view_name, view_name), False)
 
     def delete_address(self, address: str, view_name:str ):
-        return self.run_sql_stmt("DELETE from address WHERE address=%s and view_name=%s",(address, view_name), False)
+        return self.run_sql_stmt("DELETE from address WHERE address=%s and view_name=%s", (address, view_name), False)
+
+    def create_avail_pool(self, name: str, view_name: str):
+        return self.run_sql_stmt("INSERT into availability_pool (name, view_name) VALUES (%s, %s)", (name, view_name), False)
+
+    def get_avail_pool(self, name: str, view_name: str):
+        return self.run_sql_stmt("SELECT name from availability_pool WHERE name=%s and view_name=%s", (name, view_name), True)
+
+    def delete_avail_pool(self, name: str, view_name: str):
+        return self.run_sql_stmt("DELETE from availability_pool WHERE name=%s and view_name=%s", (name, view_name), False)

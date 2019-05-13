@@ -1,8 +1,6 @@
 CREATE DATABASE manager;
 \connect manager;
 
-CREATE EXTENSION ltree;
-
 CREATE TABLE views (
   	view_name text PRIMARY KEY
 );
